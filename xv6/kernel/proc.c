@@ -443,4 +443,9 @@ procdump(void)
   }
 }
 
-
+static unsigned long int X = 1;
+unsigned int rand(void)
+{
+	X = X * 1103515245 + 12345;
+	return (unsigned)(X/65536) % 32768;
+}
