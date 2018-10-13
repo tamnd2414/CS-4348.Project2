@@ -4,7 +4,8 @@
 #include "param.h"
 #include "mmu.h"
 #include "proc.h"
-#include "sysfunc.h"
+#include "sysfunc.hi"
+#include "pstat.h"
 
 int
 sys_fork(void)
@@ -99,4 +100,13 @@ sys_settickets(void)
   }
   proc->tickets = n;  
   return n;
+}
+
+int
+sys_getpinfo(void)
+{
+  struct pstat *pt;
+  if(argptr(1, (void*)&st, sizeof(*st)) < 0)
+    return -1;
+  return procstat(pt);
 }

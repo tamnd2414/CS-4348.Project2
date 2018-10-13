@@ -45,6 +45,7 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
+  p->ticks = 0;
   release(&ptable.lock);
 
   // Allocate kernel stack if possible.
@@ -146,6 +147,7 @@ fork(void)
   np->parent = proc;
   *np->tf = *proc->tf;
   np->tickets = proc->tickets;
+  np->ticks = proc->ticks;
 
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
@@ -288,6 +290,7 @@ scheduler(void)
       proc = p;
       switchuvm(p);
       p->state = RUNNING;
+      p->ticks++;
       swtch(&cpu->scheduler, proc->context);
       switchkvm();
 
@@ -456,6 +459,29 @@ procdump(void)
     }
     cprintf("\n");
   }
+}
+
+int procstat(struc proc *p, struc pstat *pt)
+{
+  int i = 0;
+  acquire(&ptable.lock);
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  {
+    if(p->state == UNUSED)
+    {
+      i++;
+      continue;
+    }
+    if(p->state == RUNNING)
+      pt->inuse[i] = 1;
+    else
+      pt->inuse[i] = 0;
+    pt->tickets[i] = p->tickets;
+    pt->pid[i] = p->pid;
+    pt->ticks[i] = p->ticks;
+    i++;
+  }
+  release(&ptable.lock);
 }
 
 static unsigned long int X = 1;
