@@ -13,10 +13,6 @@ USER_PROGS := \
 	rm\
 	sh\
 	stressfs\
-	readcount1\
-	readcount2\
-	readcount3\
-	test\
 	tester\
 	usertests\
 	wc\

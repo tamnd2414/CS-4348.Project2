@@ -93,7 +93,8 @@ userinit(void)
   p->tf->eflags = FL_IF;
   p->tf->esp = PGSIZE;
   p->tf->eip = 0;  // beginning of initcode.S
-
+  p->tickets = DEFAULT_TICKETS;
+  
   safestrcpy(p->name, "initcode", sizeof(p->name));
   p->cwd = namei("/");
 
@@ -144,6 +145,7 @@ fork(void)
   np->sz = proc->sz;
   np->parent = proc;
   *np->tf = *proc->tf;
+  np->tickets = proc->tickets;
 
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
@@ -256,16 +258,29 @@ void
 scheduler(void)
 {
   struct proc *p;
-
+  
   for(;;){
     // Enable interrupts on this processor.
     sti();
+    int totalTickets;
+    int winningTicket;
+
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+        if(p->state==RUNNABLE){
+	      totalTickets+=p->tickets;
+	      }
+	}
+    winningTicket = rand()%totalTickets;
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->state != RUNNABLE)
-        continue;
+      if(p->state == RUNNABLE){
+	winningTicket = winningTicket - p->tickets;
+      }
+      if(p->state != RUNNABLE || winningTicket >= 0){
+	continue;
+	}
 
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
@@ -446,6 +461,6 @@ procdump(void)
 static unsigned long int X = 1;
 unsigned int rand(void)
 {
-	X = X * 1103515245 + 12345;
-	return (unsigned)(X/65536) % 32768;
+    X = X * 1103515245 + 12345;
+    return (unsigned)(X/65536) % 32768;
 }

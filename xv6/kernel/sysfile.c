@@ -58,13 +58,10 @@ sys_dup(void)
   return fd;
 }
 
-int readCount=0;
-
 int
 sys_read(void)
 {
- readCount++;
- struct file *f;
+  struct file *f;
   int n;
   char *p;
 
@@ -73,11 +70,6 @@ sys_read(void)
   return fileread(f, p, n);
 }
 
-int
-sys_getreadcount(void)
-{
- return readCount;
-}
 int
 sys_write(void)
 {

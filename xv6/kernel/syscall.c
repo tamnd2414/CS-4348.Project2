@@ -23,8 +23,6 @@ fetchint(struct proc *p, uint addr, int *ip)
   return 0;
 }
 
-extern int sys_getreadcount(void);
-
 // Fetch the nul-terminated string at addr from process p.
 // Doesn't actually copy the string - just sets *pp to point at it.
 // Returns length of string, not including nul.
@@ -105,7 +103,7 @@ static int (*syscalls[])(void) = {
 [SYS_wait]    sys_wait,
 [SYS_write]   sys_write,
 [SYS_uptime]  sys_uptime,
-[SYS_getreadcount]  sys_getreadcount,
+[SYS_settickets]  sys_settickets,
 };
 
 // Called on a syscall trap. Checks that the syscall number (passed via eax)

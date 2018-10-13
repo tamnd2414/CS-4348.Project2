@@ -25,7 +25,7 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
-int getreadcount(void);
+int settickets(int);
 
 // user library functions (ulib.c)
 int stat(char*, struct stat*);
