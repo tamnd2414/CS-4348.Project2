@@ -8,6 +8,6 @@ struct pstat
   int tickets[NPROC];
   int pid[NPROC];
   int ticks[NPROC];
-}
+};
 
 #endif 

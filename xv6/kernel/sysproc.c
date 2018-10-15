@@ -4,7 +4,7 @@
 #include "param.h"
 #include "mmu.h"
 #include "proc.h"
-#include "sysfunc.hi"
+#include "sysfunc.h"
 #include "pstat.h"
 
 int
@@ -105,8 +105,8 @@ sys_settickets(void)
 int
 sys_getpinfo(void)
 {
-  struct pstat *pt;
-  if(argptr(1, (void*)&st, sizeof(*st)) < 0)
+  struct pstat *ps;
+  if(argptr(1, (void*)&ps, sizeof(*ps)) < 0)
     return -1;
-  return procstat(pt);
+  return procstat(ps);
 }
