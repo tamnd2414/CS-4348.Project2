@@ -468,7 +468,7 @@ int procstat(struct pstat *ps)
   int i = 0;
   if(ps == NULL)
     return -1;
-  acquire(&ptable.lock);
+  //acquire(&ptable.lock);
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
   {
     if(p->state == UNUSED)
@@ -476,7 +476,7 @@ int procstat(struct pstat *ps)
       i++;
       continue;
     }
-    if(p->state == RUNNING)
+    if(p->state == RUNNING || p->state == RUNNABLE || p->state == SLEEPING)
       ps->inuse[i] = 1;
     else
       ps->inuse[i] = 0;
@@ -485,7 +485,7 @@ int procstat(struct pstat *ps)
     ps->ticks[i] = p->ticks;
     i++;
   }
-  release(&ptable.lock);
+  //release(&ptable.lock);
   return 0;
 }
 
