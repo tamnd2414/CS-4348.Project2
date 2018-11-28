@@ -72,10 +72,21 @@ int main(int argc, char *argv[]){
   printf("Example Addr: %u\n", (dinodePtr[2].addrs[12]));
   printf("Example Addr: %u\n", (dinodePtr[3].addrs[12]));
   printf("Example Addr: %u\n", (dinodePtr[20].addrs[12]));
-  uint *indirAddr = (uint *)(addr + dinodePtr[20].addrs[12]*BLOCK_SIZE);
+  uint *indirAddr = (uint *)(addr + dinodePtr[100].addrs[12]*BLOCK_SIZE);
   printf("Example indirect Addr: %p\n", indirAddr);
-  /*
+/*
   for(int j = 0; j < 20; j++, indirAddr++){
       printf("Example indirect Addr: %p  uint: %u\n", indirAddr, *(indirAddr));
   }*/
+
+  //how to check bitmap bit of certain block
+  int blocknum = 900;
+  printf("Block containing bit for block #10: %ld\n", BBLOCK(blocknum, sbPtr->ninodes));
+  uchar *bitmap = (uchar *)(addr + BBLOCK(blocknum, sbPtr->ninodes)*BLOCK_SIZE);
+  int bi = blocknum % BPB;
+  int m = 1 << (bi % 8);
+  if((bitmap[bi/8] & m) == 0)
+    printf("Free\n");
+  else
+    printf("Used\n");
 }
