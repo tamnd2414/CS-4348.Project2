@@ -31,7 +31,7 @@ main(int argc, char *argv[])
     char *addr;
     struct dinode *dip;
     struct superblock *sb;
-    //struct dirent *rde;
+    struct dirent *rde;
     struct stat fileStat;
 
     if(argc < 2){
@@ -65,9 +65,9 @@ main(int argc, char *argv[])
 
 
     for(int i = 0; i < sb->ninodes; i++){
-        printf("Dinode %d Root inode  size %d links %d type %d \n", i+1, dip[i+1].size, dip[i+1].nlink, dip[i+1].type);
+        printf("Dinode %d Root inode  size %d links %d type %d address %d\n", i+1, dip[i+1].size, dip[i+1].nlink, dip[i+1].type, dip[i+1].addrs[0]);
 
-        /*
+
         //check for case 3
         if((i+1) == 1){
             if(dip[i+1].size == 0) {
@@ -91,6 +91,23 @@ main(int argc, char *argv[])
         if(dip[i+1].type != 0 && dip[i+1].type != 1 && dip[i+1].type != 2 && dip[i+1].type != 3) {
             printf("ERROR: bad inode\n");
             exit(1);
+        }
+        //check for case 2
+        else{
+            for(int z=0; z< NDIRECT; z++){
+                if(dip[i+1].addrs[z] < 0 || dip[i+1].addrs[z] > sb->nblocks){
+                    printf("ERROR: bad direct address in inode. %d\n", dip[i+1].addrs[z]);
+                    exit(1);
+                }
+            }
+
+            uint *indirect = (uint *) (dip[i+1].addrs[NDIRECT]*BLOCK_SIZE + addr);
+            for(int z = 0; z< NINDIRECT; z++, indirect++){
+                if(*(indirect) <  0 || *(indirect) > sb->nblocks){
+                    printf("ERROR: bad indirect address in inode.\n");
+                    exit(1);
+                }
+            }
         }
 
         //check for case 4
@@ -127,12 +144,12 @@ main(int argc, char *argv[])
                 }
             }
         }
-*/
+
     }
 
-    //case6
-    for(int i=1; i <= sb->nblocks; i++) {
-
+    //check for case 6
+    for(int i=dip[1].addrs[0]; i <= sb->nblocks; i++) {
+        int bitfound = 0;
         int blocknum = i;
         uchar *bitmap = (uchar *) (addr + BBLOCK(blocknum, sb->ninodes) * BLOCK_SIZE);
         int bi = blocknum % BPB;
@@ -141,20 +158,28 @@ main(int argc, char *argv[])
         if ((bitmap[bi / 8] & m) == 0){
             continue;
         }
+
         printf("used bitmap %d block number %d\n", (bitmap[bi / 8] & m), i);
+
         for(int j = 1; j <= sb->ninodes; j++){
-            for(int z=0; z<NDIRECT; z++){
+
+            for(int z=0; z< NDIRECT; z++){
                 if(dip[j].addrs[z] == (i)){
-                    printf("matches\n");
+                    bitfound=1;
                 }
             }
 
             uint *indirect = (uint *) (dip[j].addrs[NDIRECT]*BLOCK_SIZE + addr);
-            for(int z = 0; z<= NINDIRECT; z++, indirect++){
+            for(int z = 0; z< NINDIRECT; z++, indirect++){
                 if(*(indirect) == i){
-                    printf("matches\n");
+                    bitfound=1;
                 }
             }
+        }
+
+        if(bitfound == 0){
+            printf("ERROR: bitmap marks block in use but it is not in use\n");
+            exit(1);
         }
     }
 
